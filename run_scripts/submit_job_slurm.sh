@@ -9,6 +9,16 @@
 #   run through "enqueue_job.sh" instead.
 #
 #
+
+### Quick guide (and memory helper):
+### $ mkdir logs/
+### $ echo 'the command you want to run' > command.txt
+### $ sbatch submit_job_slurm.sh command.txt
+### To check output:
+### $ tail -f logs/jobid.err
+### To check queue state:
+### $ squeue
+
 ### Lines "#SBATCH" configure the job resources
 ### (even though they look like bash comments)
 
