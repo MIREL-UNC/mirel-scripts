@@ -34,10 +34,8 @@ def get_vectors_from_model(w2v_model, sample_size):
     if sample_size > 0:
         words = random.sample(w2v_model.index2word, k=sample_size)
     else:
-        words = w2v_model
-    for word in words:
-        vectors.append(w2v_model[word])
-    return numpy.vstack(vectors)
+        words = w2v_model.vocab.keys()
+    return w2v_model[words]
 
 
 def main():
@@ -60,12 +58,12 @@ def main():
     logger.info('Computing t-sne tranformation')
     tsne_model = TSNE(n_components=2)
     numpy.set_printoptions(suppress=True)
-    tsne_model.fit_transform(vectors)
+    new_vectors = tsne_model.fit_transform(vectors)
 
     # Save resulting vectors
     logger.info('Saving output')
     with open(arguments['output_filename'], 'w') as output_file:
-        numpy.save(output_file, vectors)
+        numpy.save(output_file, new_vectors)
 
 
 if __name__ == '__main__':
