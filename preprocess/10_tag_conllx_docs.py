@@ -23,9 +23,9 @@ with open(sys.argv[1], "r") as fi:
                     continue
 
                 for i, w in enumerate(sentence):
-                    w[3] = tags[i][1]
-                    w[4] = tags[i][1]
-                    w[5] = w[-1]
+                    w[3] = tags[i][1]  # Pos tag
+                    w[4] = tags[i][1]  # Pos tag
+                    w[5] = w[-1]  # Label?
 
                 print("\n".join(["\t".join(w[:6]) for w in sentence]).encode("utf-8"), end="\n\n", file=fo)
                 sentence = []
