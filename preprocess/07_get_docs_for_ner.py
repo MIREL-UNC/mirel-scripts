@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Script to select documents with references to the selected yago entities.
+
+Usage:
+    python 07_get_docs_for_ner.py <pickles_dirpath> <resources_dirpath> <output_dirpath>
+
+"""
+
 
 from __future__ import unicode_literals, print_function
 
@@ -7,25 +15,28 @@ import cPickle as pickle
 import os
 import sys
 from bs4 import BeautifulSoup
+from docopt import docopt
 from tqdm import tqdm
+
+args = docopt(__doc__, version=1.0)
+pickles_dir = args['<pickles_dirpath>']
+resources_dir = args['<resources_dirpath>']
+output_dir = args['<output_dirpath>']
 
 wikipages = set()
 ids_urls = {}
 uris_urls = {}
 
-pickles_dir = sys.argv[1]
-output_dir = sys.argv[2]
-
 for pkl in tqdm(os.listdir(pickles_dir)):
     with open(os.path.join(pickles_dir, pkl)) as f:
         wikipages = wikipages.union({w[1] for w in pickle.load(f)[1:]})
 
-with open("../../resources/ids_urls.txt", "r") as f:
+with open(os.path.join(resources_dirpath, "ids_urls.txt"), "r") as f:
     for line in tqdm(f.readlines()):
         line = line.strip().split(",", 1)
         ids_urls[line[0]] = line[1]
 
-with open("../../resources/parsed_uris.txt", "r") as f:
+with open(os.path.join(resources_dirpath, "parsed_uris.txt"), "r") as f:
     for line in tqdm(f.readlines()):
         line = line.strip().split(",http://", 1)
         uris_urls[line[0]] = "http://{}".format(line[1])
