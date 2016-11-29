@@ -29,11 +29,21 @@ def download_category(category_name, limit, offset, directory_name):
     return (category_name, len(response) - 1)
 
 
+def get_subcategories(category_name, sub_categories_set):
+    """Returns a list with the descendent categories of category_name"""
+    query = """SELECT DISTINCT ?subCategory WHERE {
+        ?subCategory rdfs:subClassOf <http://yago-knowledge.org/resource/%s> .
+        }""" % (category_name, )
+    response = utils.query_sparql(query, utils.YAGO_ENPOINT_URL)
+    import ipdb; ipdb.set_trace()
+
+
 def main(category_filename, limit, directory_name):
     """Main script function."""
     utils.safe_mkdir(directory_name)
     lines = []
     results = []
+    sub_categories = set()
     with open(category_filename, 'r') as input_file:
         lines = input_file.read().split('\n')
     for line in tqdm(lines):
@@ -44,6 +54,9 @@ def main(category_filename, limit, directory_name):
             category_name, offset = splitted_line
         else:
             print 'Error in line {}'.format(line)
+        get_subcategories(category_name, sub_categories)
+
+    for category_name in sub_categories:
         results.append(
             download_category(category_name, limit, offset, directory_name))
     for category_name, total in results:
