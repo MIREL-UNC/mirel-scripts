@@ -56,31 +56,49 @@ def query_sparql(query, endpoint):
     return result
 
 
-def get_subcategories(category_name, subcategories, levels):
-    """Updates the children categories and level of category name.
-
-    Params:
-        category_name String
-        children Dict map from the category names to a set of its subcategories.
-        levels Dict a map from the category to its level. Level 0 means no
-            parent (root category), level 1 means only one ancestor in the
-            total set of categories, etc.
-    """
-    # Base case
-    if category_name in subcategories:
-        return
-    # Recursive case
+def query_subclasses(category_name):
     query = """SELECT DISTINCT ?subCategory WHERE {
         ?subCategory rdfs:subClassOf <%s%s> .
         ?entity rdf:type ?subCategory .
         }""" % (RESOURCE_PREFIX, category_name)
-    response = query_sparql(query, YAGO_ENPOINT_URL)
-    for result in response[1:]:
-        category = result[0].replace(RESOURCE_PREFIX, '')
-        if 'wikicat' in category:
-            continue
-        subcategories[category_name].append(category)
-        levels[category] = levels[category_name] + 1
-        subcategories[category] = []
-        get_subcategories(category, subcategories, levels)
+    return query_sparql(query, YAGO_ENPOINT_URL)[1:]
 
+
+def add_subcategories(category_name, graph, ancestors=[]):
+    """Updates the children categories and level of category name.
+    """
+    def add_ancestor(category_name):
+        graph.add_edge(ancestors[-1], category_name, path_len=len(ancestors))
+    response = query_subclasses(category_name)
+
+    for result in response:
+        child_category = result[0].replace(RESOURCE_PREFIX, '')
+        if 'wikicat' in child_category:
+            continue
+        add_subcategories(child_category, graph,
+                          ancestors=ancestors + [category_name])
+
+    if category_name not in graph:
+        if len(ancestors):
+            add_ancestor(category_name)
+        else:
+            graph.add_node(category_name)
+        return
+
+    # We have seen the node before
+    if len(graph.predecessors(category_name)) == 0:  # There is no ancestor yet.
+        if len(ancestors):  # it's not the first recursive call
+            add_ancestor(category_name)
+    else:  # There is a previous ancestor
+        added = False
+        for prev_ancestor in graph.predecessors(category_name):
+            if prev_ancestor in ancestors:
+                added = True
+                if len(ancestors) > graph.get_edge_data(
+                        prev_ancestor, category_name)['path_len']:
+                    # The current ancestor has a longer path
+                    graph.remove_edge(prev_ancestor, category_name)
+                    add_ancestor(category_name)
+        # The new ancestor doesn't overlap with any previous ancestor's path.
+        if not added and len(ancestors):
+            add_ancestor(category_name)
