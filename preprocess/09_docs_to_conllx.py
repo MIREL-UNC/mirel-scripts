@@ -44,7 +44,7 @@ def load_urls(urls_dirpath):
     """Returns a dictionary from the wikipage to a URLEntity."""
     url_entities = {}
     for pkl in tqdm(sorted(os.listdir(urls_dirpath))):
-        category_name, _ = pkl.strip().split("-0.pickle", 1)
+        category_name, _ = pkl.strip().split(".pickle", 1)
         with open(os.path.join(urls_dirpath, pkl), "rb") as fp:
             for entity in pickle.load(fp)[1:]:
                 yagouri, wikipage = entity
@@ -92,7 +92,7 @@ def write_link_token(token_idx, entity, token_tag, output_file):
                 url_entity_to_string(entity)).encode("utf-8"), file=output_file)
         else:
             print("{} {}\t{}\tO".format(
-                token_idx, subtoken, conll_columns).encode("utf-8"), 
+                token_idx, subtoken, conll_columns).encode("utf-8"),
                 file=output_file)
     return token_idx
 
