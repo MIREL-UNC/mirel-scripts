@@ -1,6 +1,7 @@
 """Auxiliary functions."""
 
 import cPickle
+import re
 import os
 
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -29,6 +30,15 @@ def pickle_from_file(filename):
     """Abstraction to read pickle file with the same protocol always."""
     with open(filename, 'r') as file_:
         return cPickle.load(file_)
+
+
+def get_input_files(input_dirpath, pattern):
+    """Returns the names of the files in input_dirpath that matches pattern."""
+    all_files = os.listdir(input_dirpath)
+    for filename in all_files:
+        if re.match(pattern, filename) and os.path.isfile(os.path.join(
+                input_dirpath, filename)):
+            yield os.path.join(input_dirpath, filename)
 
 
 # TODO(mili): Is is better a pandas DataFrame
