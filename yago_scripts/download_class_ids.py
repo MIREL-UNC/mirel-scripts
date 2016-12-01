@@ -18,29 +18,13 @@ from docopt import docopt
 from tqdm import tqdm
 
 
-def download_category(category_name, limit):
-    """Downloads a single category and stores result in directory_name."""
-    query = """SELECT DISTINCT ?entity ?wikiPage WHERE {
-        ?entity rdf:type <http://yago-knowledge.org/resource/%s> .
-        ?entity <http://yago-knowledge.org/resource/hasWikipediaUrl> ?wikiPage
-        } LIMIT %s""" % (category_name, limit)
-    return utils.query_sparql(query, utils.YAGO_ENPOINT_URL)
-
-
-def get_categories_from_file(category_filename):
-    """Read categories and ofsets"""
-    with open(category_filename, 'r') as input_file:
-        lines = input_file.read().split('\n')
-    return lines
-
-
 def get_graph(graph_filename, category_filename):
     if graph_filename:
         print 'Reading pickled graph'
         hierarchy_graph = utils.pickle_from_file(graph_filename)
     else:
         hierarchy_graph = networkx.DiGraph()
-        categories = get_categories_from_file(category_filename)
+        categories = utils.get_categories_from_file(category_filename)
         print 'Downloading categories'
         for category_name in tqdm(categories):
             utils.add_subcategories(category_name, hierarchy_graph)
@@ -71,7 +55,7 @@ def main(category_filename, limit, directory_name, graph_filename):
     seen_entities = defaultdict(set)
     final_counts = {}
     for category_name in tqdm(sorted_categories):
-        results = download_category(category_name, limit)[1:]
+        results = utils.download_category(category_name, limit)[1:]
         filtered_results = set([entity[0] for entity in results])
         for child in get_descendants(hierarchy_graph, category_name):
             filtered_results = filtered_results.difference(seen_entities[child])

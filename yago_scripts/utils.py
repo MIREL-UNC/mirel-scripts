@@ -66,11 +66,32 @@ def query_sparql(query, endpoint):
     return result
 
 
-def query_subclasses(category_name):
+def download_category(category_name, limit):
+    """Downloads a single category and stores result in directory_name."""
+    query = """SELECT DISTINCT ?entity ?wikiPage WHERE {
+        ?entity rdf:type <http://yago-knowledge.org/resource/%s> .
+        ?entity <http://yago-knowledge.org/resource/hasWikipediaUrl> ?wikiPage
+        } LIMIT %s""" % (category_name, limit)
+    return query_sparql(query, YAGO_ENPOINT_URL)
+
+
+def get_categories_from_file(category_filename):
+    """Read categories and ofsets"""
+    with open(category_filename, 'r') as input_file:
+        lines = input_file.read().split('\n')
+    return lines
+
+
+def query_subclasses(category_name, populated=True):
     query = """SELECT DISTINCT ?subCategory WHERE {
         ?subCategory rdfs:subClassOf <%s%s> .
+        """ % (RESOURCE_PREFIX, category_name)
+    if populated:
+        query += """
         ?entity rdf:type ?subCategory .
-        }""" % (RESOURCE_PREFIX, category_name)
+        }"""
+    else:
+        query += '}'
     return query_sparql(query, YAGO_ENPOINT_URL)[1:]
 
 
