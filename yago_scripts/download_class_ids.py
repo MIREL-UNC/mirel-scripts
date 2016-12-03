@@ -19,7 +19,7 @@ from tqdm import tqdm
 
 
 def get_graph(graph_filename, category_filename):
-    if graph_filename:
+    if graph_filename and os.path.isfile(graph_filename):
         print 'Reading pickled graph'
         hierarchy_graph = utils.pickle_from_file(graph_filename)
     else:
@@ -28,6 +28,9 @@ def get_graph(graph_filename, category_filename):
         print 'Downloading categories'
         for category_name in tqdm(categories):
             utils.add_subcategories(category_name, hierarchy_graph)
+        if graph_filename:
+            print 'Saving graph'
+            utils.pickle_to_file(hierarchy_graph, category_filename)
     return hierarchy_graph
 
 
