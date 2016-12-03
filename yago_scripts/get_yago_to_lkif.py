@@ -21,7 +21,7 @@ def get_oldest_ancestors(node, graph):
     # Recursive case
     result = []
     for parent in ancestors:
-        result.extend(get_oldest_ancestor(parent, graph))
+        result.extend(get_oldest_ancestors(parent, graph))
     return result
 
 
@@ -48,7 +48,7 @@ def main():
             continue
         for ancestor in get_oldest_ancestors(node, graph):
             yago_to_lkif[node].update(yago_to_lkif[ancestor])
-
+    
     utils.pickle_to_file(dict(yago_to_lkif), args['<output_file>'])
 
 
