@@ -6,6 +6,7 @@ Script to select documents with references to the selected yago entities.
 Usage:
     07_get_docs_for_ner.py <pickles_dir> <resources_dir> <links_dir> <output_dir>
 
+pickles_dir is the directory with the pickled yago downloads
 """
 
 

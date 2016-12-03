@@ -1,6 +1,7 @@
 """Auxiliary functions."""
 
 import cPickle
+import re
 import os
 
 from SPARQLWrapper import SPARQLWrapper, JSON
@@ -31,6 +32,15 @@ def pickle_from_file(filename):
         return cPickle.load(file_)
 
 
+def get_input_files(input_dirpath, pattern):
+    """Returns the names of the files in input_dirpath that matches pattern."""
+    all_files = os.listdir(input_dirpath)
+    for filename in all_files:
+        if re.match(pattern, filename) and os.path.isfile(os.path.join(
+                input_dirpath, filename)):
+            yield os.path.join(input_dirpath, filename)
+
+
 # TODO(mili): Is is better a pandas DataFrame
 def query_sparql(query, endpoint):
     """Run a query again an SPARQL endpoint.
@@ -56,11 +66,32 @@ def query_sparql(query, endpoint):
     return result
 
 
-def query_subclasses(category_name):
+def download_category(category_name, limit):
+    """Downloads a single category and stores result in directory_name."""
+    query = """SELECT DISTINCT ?entity ?wikiPage WHERE {
+        ?entity rdf:type <http://yago-knowledge.org/resource/%s> .
+        ?entity <http://yago-knowledge.org/resource/hasWikipediaUrl> ?wikiPage
+        } LIMIT %s""" % (category_name, limit)
+    return query_sparql(query, YAGO_ENPOINT_URL)
+
+
+def get_categories_from_file(category_filename):
+    """Read categories and ofsets"""
+    with open(category_filename, 'r') as input_file:
+        lines = input_file.read().split('\n')
+    return lines
+
+
+def query_subclasses(category_name, populated=True):
     query = """SELECT DISTINCT ?subCategory WHERE {
         ?subCategory rdfs:subClassOf <%s%s> .
+        """ % (RESOURCE_PREFIX, category_name)
+    if populated:
+        query += """
         ?entity rdf:type ?subCategory .
-        }""" % (RESOURCE_PREFIX, category_name)
+        }"""
+    else:
+        query += '}'
     return query_sparql(query, YAGO_ENPOINT_URL)[1:]
 
 
