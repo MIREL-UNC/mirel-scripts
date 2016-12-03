@@ -174,6 +174,8 @@ def transform_to_conll(resources_dir, total_docs, url_entities, uris_urls):
     conll_doc_idx = 0
     with open(input_filepath, "r") as input_file:
         for doc_idx, line_doc in tqdm(enumerate(input_file), total=total_docs):
+	    if doc_idx >= total_docs:
+		break
             if doc_idx % 60000 == 0:
                 conll_doc_idx += 1
             output_filepath = os.path.join(
