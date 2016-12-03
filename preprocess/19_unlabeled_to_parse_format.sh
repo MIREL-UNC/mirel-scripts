@@ -23,7 +23,7 @@ do
   maxjobs
   filename=$(basename $file)
   echo "Processing $filename"
-  awk '{ print $1 "\t" $2 "\t_\t" $3 "\t" $3 "\t" $4}' $file > $2/$filename &
+  awk '$1 ~ /[0-9]+/ {print $1 "\t" $2 "\t_\t" $3 "\t" $3 "\t" $4} $1 == "" {print ""}' $file > $2/$filename &
 done
 wait)
 
