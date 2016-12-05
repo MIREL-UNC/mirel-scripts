@@ -50,7 +50,7 @@ def get_entity_classes(entity, mapping):
     """
     yago_categories = []
     lkif_categories = []
-    for category in entity.categories:
+    for category in sorted(entity.categories):
         if not category in mapping:
             print('Error, unmapped category {}'.format(category),
                   file=sys.stderr)
@@ -63,10 +63,7 @@ def get_entity_classes(entity, mapping):
 
 
 def url_entity_to_string(entity):
-    wikipage = entity.wikipage.replace("http://en.wikipedia.org/wiki/", "")
-    yagouri = entity.yagouri.replace("http://yago-knowledge.org/resource/", "")
-    return "{}#{}#{}".format(wikipage, yagouri,
-                             "|".join(sorted(entity.categories)))
+    return entity.yagouri.replace("http://yago-knowledge.org/resource/", "") 
 
 
 def load_urls(urls_dirpath):
@@ -114,14 +111,14 @@ def write_link_token(token_idx, entity, token_tag, output_file, mapping):
         if entity is not None:
             yago_classes, lkif_classes = get_entity_classes(entity, mapping)
             if subtoken_idx == 0:
-                row = "{}\t{}\tB-{}\tB-{}"
+                row = "{}\t{}\tB-{}\tB-{}\tB-{}"
             else:
-                row = "{}\t{}\tI-{}\tI-{}"
+                row = "{}\t{}\tI-{}\tI-{}\tI-{}"
             print(row.format(
-                token_idx, subtoken,
+                token_idx, subtoken, url_entity_to_string(entity),
                 yago_classes, lkif_classes).encode('utf-8'), file=output_file)
         else:
-            print("{}\t{}\tO\tO".format(token_idx, subtoken).encode("utf-8"),
+            print("{}\t{}\tO\tO\tO".format(token_idx, subtoken).encode("utf-8"),
                   file=output_file)
     return token_idx
 
@@ -133,14 +130,14 @@ def write_title_token(token_idx, doc_title, entity, output_file, mapping):
         if entity is not None:
             yago_classes, lkif_classes = get_entity_classes(entity, mapping)
             if subtoken_idx == 0:
-                row = "{}\t{}\tB-{}-DOC\tB-{}-DOC"
+                row = "{}\t{}\tB-{}-DOC\tB-{}-DOC\tB-{}-DOC"
             else:
-                row = "{}\t{}\tI-{}-DOC\tI-{}-DOC"
+                row = "{}\t{}\tI-{}-DOC\tI-{}-DOC\tI-{}-DOC"
             print(row.format(
-                token_idx, subtoken,
+                token_idx, subtoken, url_entity_to_string(entity),
                 yago_classes, lkif_classes).encode('utf-8'), file=output_file)
         else:
-            print("{}\t{}\tO-DOC\tO-DOC".format(
+            print("{}\t{}\tO-DOC\tO-DOC\tO-DOC".format(
                 token_idx, subtoken).encode("utf-8"),
                 file=output_file)
     return token_idx
@@ -175,7 +172,7 @@ def transform_document(output_file, url_entities, uris_urls, line_doc, mapping):
                 except BaseException as e:
                     print("Document {} had unexpected exception for token {}: {}".format(
                         doc_url, token_idx, e), file=sys.stderr)
-                entity = None
+                    entity = None
 
                 token_idx = write_link_token(token_idx, entity, token_tag,
                                              output_file, mapping)
@@ -187,7 +184,7 @@ def transform_document(output_file, url_entities, uris_urls, line_doc, mapping):
                                               output_file, mapping)
             else:
                 token_idx += 1
-                print("{}\t{}\tO\t".format(token_idx, token).encode("utf-8"),
+                print("{}\t{}\tO\tO\tO".format(token_idx, token).encode("utf-8"),
                       file=output_file)
 
         print("", file=output_file)
