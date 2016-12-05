@@ -22,13 +22,6 @@ def get_entity_clean_name(entity):
     return entity.split('/')[-1].encode('utf-8')
 
 
-def get_all_entities(category):
-    query = """SELECT DISTINCT ?entity WHERE {
-            ?entity rdf:type <%s> .
-        }""" % (category, )
-    return utils.query_sparql(query, utils.YAGO_ENPOINT_URL)[1:]
-
-
 def main(category_filename, output_file):
     """Main script function."""
     labels = {
@@ -40,18 +33,22 @@ def main(category_filename, output_file):
     for category in tqdm(utils.get_categories_from_file(category_filename)):
         categories.add(utils.RESOURCE_PREFIX + category)
         subclasses = [
-            x[0] for x in utils.query_subclasses(category, populated=False)
-            if 'wikicat' not in x[0]]
+            x[0].replace(utils.RESOURCE_PREFIX, '')
+            for x in utils.query_subclasses(category, populated=False)
+            if 'wikicat' not in x[0]
+        ]
         categories.update(subclasses)
     entities = set()
     print 'Downloading entities'
     for category in tqdm(categories):
         labels['labels'][category] = 'lightcoralLabel'
-        category_entities = [get_entity_clean_name(entity[0])
-                             for entity in get_all_entities(category)]
+        category_entities = [
+            get_entity_clean_name(entity[0])
+            for entity in utils.download_category(category, 500000)[1:]]
         print category, len(category_entities)
         entities.update(category_entities)
     labels['YAGO uri'] = list(entities)
+    print 'Yago uris obtained: ', len(labels['YAGO uri'])
     with open(output_file, 'w') as out_file:
         json.dump(labels, out_file, ensure_ascii=False)
 
