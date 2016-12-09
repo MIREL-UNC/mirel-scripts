@@ -27,22 +27,27 @@ def pickle_from_file(filename):
 
 def main():
     args = read_arguments()
+    print 'Reading arguments'
     labels = pickle_from_file(args.labels_file)
     mapping = pickle_from_file(args.mapping_file)
 
+    print 'Processing labels'
     for index, label in tqdm(enumerate(labels)):
-        assert len(labels) == 5
+        if len(label) != 5:
+            print 'Malformed label at index {}'.format(index)
+            continue
         if label[0].startswith('O'):
             continue
-        yago_category = label[1]
+        yago_category = label[1].replace('I-', '').replace('B-', '')
         if not yago_category in mapping:
             print 'Error, unknown yago category {}'.format(yago_category)
             continue
-        label[4] = mapping[yago_category]
+        high_level_category = label[1][0] + '-' + mapping[yago_category]
+        labels[index] = label[:3] + (high_level_category, ) + label[4:] 
 
-    # Save results
-    # with open(args.labels_file, 'w') as output_file:
-    #     pickle.dump(labels, output_file)
+    print 'Saving results'
+    with open(args.labels_file, 'w') as output_file:
+        pickle.dump(labels, output_file)
 
 
 if __name__ == '__main__':
