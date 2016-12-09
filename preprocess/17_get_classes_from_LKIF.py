@@ -94,7 +94,7 @@ def add_entities_from_list(pair_list, class_name, current_result):
     """Adds the entities of pair_list and their classes to current_result.
 
     The format of the pair_list is the same as the result of the script
-    dowload_class_ids"""
+    download_class_ids"""
 
     for entity, _ in pair_list[1:]:  # Ignore the first entry
         entity = entity.replace(URI_YAGO, '')

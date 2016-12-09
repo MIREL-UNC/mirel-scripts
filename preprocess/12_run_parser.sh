@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Arguments:
+# The directory where the input files (.conll) are.
+# The output directory for the parsed files
+# The output directory for the simplified files
+# The directory to the maltparser
+
 function maxjobs {
   while [ `jobs | wc -l` -ge 4 ]
   do
@@ -7,12 +13,12 @@ function maxjobs {
   done
 }
 
-find $1 -type f -name "*.conll" | (while read file
+find $1 -type f -name "*.conll" -maxdepth 1| (while read file
 do
   maxjobs
   filename=$(basename $file)
   echo "Analyzing $filename"
-  java -Xmx3G -jar ~/opt/maltparser-1.8.1/maltparser-1.8.1.jar -w ~/opt/maltparser-1.8.1/models/ -c engmalt.linear-1.7 -m parse -i $file -o $2/$filename &> logs/${filename}.parser.log &
+  java -Xmx3G -jar $4/maltparser-1.8.1/maltparser-1.8.1.jar -w $4/maltparser-1.8.1/models/ -c engmalt.linear-1.7 -m parse -i $file -o $2/$filename &> logs/${filename}.parser.log &
 done
 wait)
 

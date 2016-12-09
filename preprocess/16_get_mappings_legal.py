@@ -43,7 +43,7 @@ if __name__ == "__main__":
         with open(os.path.join(args.input_dir, entity), 'rb') as f:
             entity_pickle = cPickle.load(f)
 
-        entity_name = entity.split('-0.pickle')[0]
+        entity_name = entity.split('.pickle')[0]
 
         for yago_uri, wiki_uri in entity_pickle[1:]:
             yago_uri = yago_uri.replace(URI_YAGO, '')
