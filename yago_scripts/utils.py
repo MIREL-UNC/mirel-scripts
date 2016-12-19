@@ -1,6 +1,9 @@
 """Auxiliary functions."""
 
-import cPickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import re
 import os
 
@@ -21,15 +24,14 @@ def safe_mkdir(dir_name):
 
 def pickle_to_file(object_, filename):
     """Abstraction to pickle object with the same protocol always."""
-    file_ = open(filename, 'w')
-    cPickle.dump(object_, file_, cPickle.HIGHEST_PROTOCOL)
-    file_.close()
+    with open(filename, 'wb') as file_:
+        pickle.dump(object_, file_, pickle.HIGHEST_PROTOCOL)
 
 
 def pickle_from_file(filename):
     """Abstraction to read pickle file with the same protocol always."""
-    with open(filename, 'r') as file_:
-        return cPickle.load(file_)
+    with open(filename, 'rb') as file_:
+        return pickle.load(file_)
 
 
 def get_input_files(input_dirpath, pattern):
