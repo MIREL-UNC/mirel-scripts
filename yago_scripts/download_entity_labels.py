@@ -3,11 +3,15 @@
 Usage:
     download_entity_labels.py <source_filename> <output_filename>
 """
+import logging
 import pickle
+import urllib
 import utils
 
 from docopt import docopt
 from tqdm import tqdm
+
+logging.basicConfig(level=logging.INFO)
 
 
 def get_labels(uri):
@@ -21,11 +25,15 @@ def get_labels(uri):
 
 def main(source_filename, output_filename):
 
-    entities = utils.pickle_from_file(source_filename)
+    entities = set([uri[2:] for uri in utils.pickle_from_file(source_filename)])
     labels = {}
     for uri in tqdm(entities):
-        uri = uri[2:]
-        labels[uri] = get_labels(uri)
+        try:
+            labels[uri] = get_labels(uri)
+        except urllib.error.HTTPError as error:
+            logging.error('Error for uri {}'.format(uri))
+            logging.error(error)
+            
     utils.pickle_to_file(labels, output_filename)
 
 
