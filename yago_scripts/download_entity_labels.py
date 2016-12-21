@@ -3,9 +3,13 @@
 Usage:
     download_entity_labels.py <source_filename> <output_filename>
 """
+import jsonlines
 import logging
-import pickle
+import os
 import urllib
+
+from SPARQLWrapper.SPARQLExceptions import EndPointNotFound
+
 import utils
 
 from docopt import docopt
@@ -26,15 +30,24 @@ def get_labels(uri):
 def main(source_filename, output_filename):
 
     entities = set([uri[2:] for uri in utils.pickle_from_file(source_filename)])
-    labels = {}
-    for uri in tqdm(entities):
-        try:
-            labels[uri] = get_labels(uri)
-        except urllib.error.HTTPError as error:
-            logging.error('Error for uri {}'.format(uri))
-            logging.error(error)
-            
-    utils.pickle_to_file(labels, output_filename)
+
+    # Read previous downloaded
+    seen_uris = set()
+    if os.path.exists(output_filename):
+        with jsonlines.open(output_filename) as reader:
+            for object in reader:
+                seen_uris.add(object.get('uri'))
+
+    entities = entities.difference(seen_uris)
+    # Write missing entities
+    with jsonlines.open(output_filename, mode='w') as writer:
+        for uri in tqdm(entities):
+            try:
+                labels = get_labels(uri)
+            except (urllib.error.HTTPError, EndPointNotFound) as error:
+                logging.error('Error for uri {}'.format(uri))
+                logging.error(error)
+            writer.write({'uri': uri, 'labels': labels})
 
 
 if __name__ == '__main__':
