@@ -50,43 +50,44 @@ def separate_labels(annotation):
     """Adds columns with raw lkif and yago uri labels"""
     def split_function(row):
         if row == DEFAULT_LABEL:
-            return pandas.Series([DEFAULT_LABEL] * 3)
+            return pandas.Series([DEFAULT_LABEL] * 2)
         uri, lkif = row.split('##')
         ner_tag = uri[0]
-        return pandas.Series([ner_tag, uri, ner_tag + '-' + lkif])
+        return pandas.Series([uri, ner_tag + '-' + lkif])
 
-    annotation[['ner_tag', 'uri_tag', 'lkif_tag']] = annotation['labels'].apply(
+    annotation[['uri_tag', 'lkif_tag']] = annotation['labels'].apply(
         split_function)
 
 
 def apply_mappings(annotation, mappings):
     """Replace labels according to mappings."""
     def get_or_update_label(mapping_key, label_name, row):
-        original_label = row[label_name]
+        original_label = row[label_name][2:]
         if original_label not in mappings[mapping_key]:
             # Add missing label
             mappings[mapping_key][original_label] = None
         if mappings[mapping_key][original_label] is not None:
             return mappings[mapping_key][original_label]
-        return original_label
+        return row[label_name][:2] + original_label
         
     def apply_function(row):
         if row['lkif_tag'] == DEFAULT_LABEL:
-            return pandas.Series([DEFAULT_LABEL] * 3)
+            return pandas.Series([DEFAULT_LABEL] * 4)
         new_row = []
         new_row.append(get_or_update_label('lkif', 'lkif_tag', row))
         new_row.append(get_or_update_label('uri', 'uri_tag', row))
         new_row.append(get_or_update_label('yago', 'lkif_tag', row))
+        new_row.append(get_or_update_label('entity', 'lkif_tag', row))
         
         return pandas.Series(new_row)
-    annotation[['lkif_tag', 'uri_tag', 'yago_tag']] = annotation[
+    annotation[['lkif_tag', 'uri_tag', 'yago_tag', 'entity_tag']] = annotation[
         ['lkif_tag', 'uri_tag']].apply(apply_function, axis=1)
 
 
 def write_file(filename, annotation):
     """Writes annotation to filename"""
-    columns = ['sentence_index', 'tokens', 'pos_tag', 'ner_tag',
-               'lkif_tag', 'uri_tag']
+    columns = ['sentence_index', 'tokens', 'pos_tag',
+               'uri_tag', 'lkif_tag', 'entity_tag']
     annotation.to_csv(filename, sep='\t',
                       columns=columns, index=None, header=False) 
 
@@ -115,7 +116,8 @@ def main():
         mappings = {
             'lkif': {},
             'yago': {},
-            'uri': {}
+            'uri': {},
+            'entity': {}
         }
     directories = utils.get_input_directories(args.annotated_documents,
                                               r'.*-annotation-.*')
@@ -126,7 +128,7 @@ def main():
         process_directory(directory, output_directory, mappings)
     if args.update_mappings:
         with open(args.mapping_filename, 'w') as mapfile:
-            json.dump(mappings, mapfile)
+            json.dump(mappings, mapfile, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
     main()
