@@ -66,8 +66,10 @@ def apply_mappings(annotation, mappings):
         if original_label not in mappings[mapping_key]:
             # Add missing label
             mappings[mapping_key][original_label] = None
+        if mappings[mapping_key][original_label] == "":
+            return DEFAULT_LABEL
         if mappings[mapping_key][original_label] is not None:
-            return mappings[mapping_key][original_label]
+            return row[label_name][:2] + mappings[mapping_key][original_label]
         return row[label_name][:2] + original_label
         
     def apply_function(row):
@@ -87,7 +89,7 @@ def apply_mappings(annotation, mappings):
 def write_file(filename, annotation):
     """Writes annotation to filename"""
     columns = ['sentence_index', 'tokens', 'pos_tag',
-               'uri_tag', 'lkif_tag', 'entity_tag']
+               'uri_tag', 'yago_tag', 'lkif_tag', 'entity_tag']
     annotation.to_csv(filename, sep='\t',
                       columns=columns, index=None, header=False) 
 
