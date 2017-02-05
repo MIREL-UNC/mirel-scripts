@@ -40,29 +40,29 @@ def main():
         print('Agreement on level {}: {:.4f}'.format(level, agreement))
 
     for level in label_levels:
-        print('Labels on level {}: {} {} - Total {}'.format(
+        print('Labels on level {}: {} vs {} - Total {}'.format(
             level, numpy.unique(file1[level]).shape[0],
             numpy.unique(file2[level]).shape[0],
             numpy.unique(concat[level]).shape[0]
         ))
 
     for level in label_levels:
-        print('Missing labels for level {}: {} {} - Total {}'.format(
+        print('Missing labels for level {}: {} vs {} - Total {}'.format(
             level, (file1[level] == '').sum(), (file2[level] == '').sum(),
             (concat[level] == '').sum()))
 
-    print('Number of labeled words {} {}'.format(
+    print('Number of labeled words {} vs {}'.format(
         (file1[label_levels[-1]] != 'O').sum(),
         (file2[label_levels[-1]] != 'O').sum()))
 
-    print('Confusion matrix. The rows are the file1 annotations, and columns'
+    print('Confusion matrix. The rows are the file1 annotations, and columns '
           'file 2 annotations.')
     labels = numpy.unique(concat.entity_class)
     cm = confusion_matrix(file1.entity_class, file2.entity_class,
                           labels=labels)
-    print('\t', '\t'.join(labels))
+    print(',' + ','.join(labels))
     for label, row in zip(labels, cm):
-        print(label, '\t', '\t'.join(row.astype(numpy.str)))
+        print(label + ',' + ','.join(row.astype(numpy.str)))
 
 
 
